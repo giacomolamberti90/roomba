@@ -35,12 +35,11 @@ class Simulator:
         self.roomba.turn_right()
 
     def forward(self) -> None:
-        for _ in range(4):
-            nx, ny = self.roomba.cell_ahead()
-            if self.can_enter(nx, ny):
-                self.roomba.move_to(nx, ny)
-                return
-            self.roomba.turn_right()
+        nx, ny = self.roomba.cell_ahead()
+        if self.can_enter(nx, ny):
+            self.roomba.move_to(nx, ny)
+            return
+        self.roomba.turn_right()
 
     def render(self) -> str:
         return self.grid.render(self.roomba)

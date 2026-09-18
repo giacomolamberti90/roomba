@@ -10,31 +10,31 @@ def test_open_space_forward():
     assert sim.roomba.facing is Direction.NORTH
 
 
-def test_wall_turns_until_clear_then_moves():
+def test_wall_turns_right_instead_of_moving():
     sim = Simulator(Roomba(x=0, y=0, facing=Direction.WEST))
     sim.forward()
-    assert (sim.roomba.x, sim.roomba.y) == (0, 1)
+    assert (sim.roomba.x, sim.roomba.y) == (0, 0)
     assert sim.roomba.facing is Direction.NORTH
 
 
-def test_corner_turns_twice_then_moves():
+def test_corner_turns_once_and_stays():
     sim = Simulator(Roomba(x=0, y=0, facing=Direction.SOUTH))
     sim.forward()
-    assert (sim.roomba.x, sim.roomba.y) == (0, 1)
-    assert sim.roomba.facing is Direction.NORTH
+    assert (sim.roomba.x, sim.roomba.y) == (0, 0)
+    assert sim.roomba.facing is Direction.WEST
 
 
 def test_opposite_edge_north():
     sim = Simulator(Roomba(x=9, y=9, facing=Direction.NORTH))
     sim.forward()
-    assert (sim.roomba.x, sim.roomba.y) == (9, 8)
-    assert sim.roomba.facing is Direction.SOUTH
+    assert (sim.roomba.x, sim.roomba.y) == (9, 9)
+    assert sim.roomba.facing is Direction.EAST
 
 
 def test_opposite_edge_east():
     sim = Simulator(Roomba(x=9, y=9, facing=Direction.EAST))
     sim.forward()
-    assert (sim.roomba.x, sim.roomba.y) == (9, 8)
+    assert (sim.roomba.x, sim.roomba.y) == (9, 9)
     assert sim.roomba.facing is Direction.SOUTH
 
 
