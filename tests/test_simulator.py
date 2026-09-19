@@ -82,6 +82,20 @@ def test_create_adds_without_changing_selection():
     assert (other.x, other.y) == (0, 0)
 
 
+def test_create_skips_occupied_origin():
+    sim = Simulator()
+    new_id = sim.create()
+    assert new_id == 2
+    other = dict(sim.list_roombas())[2]
+    assert (other.x, other.y) == (1, 0)
+
+
+def test_create_fails_when_grid_full():
+    sim = Simulator(grid=Grid(size=1))
+    assert sim.create() is None
+    assert [rid for rid, _ in sim.list_roombas()] == [1]
+
+
 def test_select_then_forward_moves_only_that_id():
     sim = Simulator()
     sim.create()
@@ -89,7 +103,7 @@ def test_select_then_forward_moves_only_that_id():
     sim.forward()
     poses = {rid: (r.x, r.y) for rid, r in sim.list_roombas()}
     assert poses[1] == (0, 0)
-    assert poses[2] == (0, 1)
+    assert poses[2] == (1, 1)
     assert sim.selected_id == 2
 
 
@@ -136,14 +150,22 @@ def test_select_and_delete_unknown_id():
     assert sim.selected_id == 1
 
 
-def test_render_two_roombas_selected_glyph_wins_overlap():
+def test_forward_blocked_by_another_roomba():
+    sim = Simulator()
+    sim.create()
+    sim.turn_right()
+    assert sim.forward() == "blocked"
+    assert (sim.roomba.x, sim.roomba.y) == (0, 0)
+    assert sim.roomba.facing is Direction.EAST
+    other = dict(sim.list_roombas())[2]
+    assert (other.x, other.y) == (1, 0)
+
+
+def test_render_two_roombas_on_separate_cells():
     sim = Simulator()
     sim.create()
     sim.select(2)
     sim.turn_right()
-    lines = sim.render().splitlines()
-    assert lines[-1].split()[0] == ">"
-    sim.forward()
     lines = sim.render().splitlines()
     assert lines[-1].split()[0] == "^"
     assert lines[-1].split()[1] == ">"

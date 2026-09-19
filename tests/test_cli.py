@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from roomba.cli import apply_command, format_list, main
 from roomba.direction import Direction
-from roomba.simulator import Simulator
+from roomba.simulator import Grid, Simulator
 
 
 def test_forward_command():
@@ -35,7 +35,7 @@ def test_new_select_delete_list():
     assert [rid for rid, _ in sim.list_roombas()] == [2]
     assert apply_command(sim, "l") == "list"
     listed = format_list(sim)
-    assert "* 2 (0, 0) NORTH" in listed
+    assert "* 2 (1, 0) NORTH" in listed
     assert " 1 " not in listed
     sim.delete(2)
     assert format_list(sim) == "(no roombas)"
@@ -58,6 +58,20 @@ def test_forward_empty_fleet():
     assert (sim.roomba.x, sim.roomba.y) == (0, 1)
 
 
+def test_forward_blocked_command():
+    sim = Simulator()
+    assert apply_command(sim, "n") == "ok"
+    assert apply_command(sim, "r") == "ok"
+    assert apply_command(sim, "f") == "blocked"
+    assert (sim.roomba.x, sim.roomba.y) == (0, 0)
+    assert sim.roomba.facing is Direction.EAST
+
+
+def test_new_full_grid():
+    sim = Simulator(grid=Grid(size=1))
+    assert apply_command(sim, "n") == "full"
+
+
 def test_main_loop():
     inputs = iter(["nope", "f", "r", "q"])
     with patch("builtins.input", side_effect=lambda _prompt: next(inputs)):
@@ -77,3 +91,12 @@ def test_main_loop_fleet_and_errors():
     assert any("No Roomba with that id" in text for text in texts)
     assert any("No Roomba selected" in text for text in texts)
     assert any("* 1 (0, 0) NORTH" in text for text in texts)
+
+
+def test_main_loop_blocked():
+    inputs = iter(["n", "r", "f", "q"])
+    with patch("builtins.input", side_effect=lambda _prompt: next(inputs)):
+        with patch("builtins.print") as printed:
+            main()
+    texts = [str(call.args[0]) if call.args else "" for call in printed.call_args_list]
+    assert any("Blocked: another Roomba is in that cell." in text for text in texts)

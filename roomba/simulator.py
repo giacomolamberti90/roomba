@@ -42,10 +42,13 @@ class Simulator:
             return None
         return self._roombas.get(self.selected_id)
 
-    def create(self) -> int:
+    def create(self) -> Optional[int]:
+        cell = self._empty_cell()
+        if cell is None:
+            return None
         rid = self._next_id
         self._next_id += 1
-        self._roombas[rid] = Roomba()
+        self._roombas[rid] = Roomba(x=cell[0], y=cell[1])
         if self.selected_id is None:
             self.selected_id = rid
         return rid
@@ -70,6 +73,16 @@ class Simulator:
     def can_enter(self, x: int, y: int) -> bool:
         return self.grid.in_bounds(x, y)
 
+    def occupied(self, x: int, y: int) -> bool:
+        return any(roomba.x == x and roomba.y == y for roomba in self._roombas.values())
+
+    def _empty_cell(self) -> Optional[Tuple[int, int]]:
+        for y in range(self.grid.size):
+            for x in range(self.grid.size):
+                if not self.occupied(x, y):
+                    return x, y
+        return None
+
     def turn_right(self) -> str:
         if self.roomba is None:
             return "no_selection"
@@ -80,10 +93,12 @@ class Simulator:
         if self.roomba is None:
             return "no_selection"
         nx, ny = self.roomba.cell_ahead()
-        if self.can_enter(nx, ny):
-            self.roomba.move_to(nx, ny)
-        else:
+        if not self.grid.in_bounds(nx, ny):
             self.roomba.turn_right()
+            return "ok"
+        if self.occupied(nx, ny):
+            return "blocked"
+        self.roomba.move_to(nx, ny)
         return "ok"
 
     def render(self) -> str:

@@ -21,7 +21,7 @@ def _parse_id(parts):
 def apply_command(sim: Simulator, cmd: str) -> str:
     """Apply one CLI command.
 
-    Returns ok, list, quit, unknown, no_selection, or not_found.
+    Returns ok, list, quit, unknown, no_selection, not_found, blocked, or full.
     """
     parts = cmd.strip().split()
     if not parts:
@@ -34,8 +34,7 @@ def apply_command(sim: Simulator, cmd: str) -> str:
     if op in ("r", "right"):
         return sim.turn_right()
     if op in ("n", "new"):
-        sim.create()
-        return "ok"
+        return "ok" if sim.create() is not None else "full"
     if op in ("l", "list"):
         return "list"
     if op in ("s", "select"):
@@ -71,6 +70,13 @@ def main() -> None:
             continue
         if result == "list":
             print(format_list(sim))
+            continue
+        if result == "blocked":
+            print("Blocked: another Roomba is in that cell.")
+            print(sim.render())
+            continue
+        if result == "full":
+            print("Grid is full.")
             continue
         print(sim.render())
 
